@@ -1,0 +1,46 @@
+---
+- name: Essential CentOS VM Setup for CI/OpenStack
+  hosts: all
+  become: yes # Run commands with sudo/root privileges
+
+  tasks:
+    - name: Update DNF cache and all installed packages
+      dnf:
+        name: "*"
+        state: latest
+
+    - name: Install core system packages
+      dnf:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - vim
+          - wget
+          - curl
+          - git
+          - make
+          - httpd
+          - mariadb-server
+          - php
+          - php-mysqlnd
+          - php-fpm
+          - ansible-core
+          - python3-pip
+          - pciutils
+          - tmux
+          - policycoreutils-python-utils
+          - haproxy
+          
+    - name: Ensure core services are running and enabled on boot
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - httpd
+        - mariadb
+        - firewalld
+        - haproxy # Note: You need a config file for this to start successfully
+
+    # Other tasks for firewall, SELinux, pip installs, etc. would follow...
